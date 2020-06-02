@@ -1,0 +1,263 @@
+<!doctype html>
+<!--
+  ~ Copyright 2013-2019, Centre for Genomic Regulation (CRG)
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<script type="text/javascript">
+var prot = (("https:" == document.location.protocol) ? "https://" : "http://");
+document.write(unescape("%3Cscript src='" + prot + "code.jquery.com/jquery-latest.min.js' type='text/javascript' %3E%3C/script%3E"));
+document.write(unescape("%3Cscript src='" + prot + "d3js.org/d3.v3.min.js' charset='utf-8' type='text/javascript' %3E%3C/script%3E"));
+document.write(unescape("%3Cscript src='" + prot + "cdn.rawgit.com/nextflow-io/d3-timeline/82622c4cc35bac7283b3a317826b0709ac1ae476/src/d3-timeline.js' type='text/javascript' %3E%3C/script%3E"));
+</script>
+<style type="text/css">
+* {
+  font-family: 'Lato', 'Helvetica Neue', Arial, Helvetica, sans-serif;
+}
+
+.axis path,
+.axis line {
+fill: none;
+  stroke: black;
+  shape-rendering: crispEdges;
+}
+
+.axis text {
+  font-size: 10px;
+}
+
+div#timeline g text {
+  font-size: 13px;
+}
+
+text.timeline-label {
+  font-size: 13px;
+}
+
+#timeline2 .axis {
+  transform: translate(0px,30px);
+  -ms-transform: translate(0px,30px); /* IE 9 */
+  -webkit-transform: translate(0px,30px); /* Safari and Chrome */
+  -o-transform: translate(0px,30px); /* Opera */
+  -moz-transform: translate(0px,30px); /* Firefox */
+}
+
+.coloredDiv {
+  height:20px; width:20px; float:left;
+}
+
+#footer {
+  padding-top: 3em; color: #bfbfbf; font-size: 13px;
+}
+
+#footer a:visited {
+  color: #bfbfbf;
+  text-decoration: underline;
+}
+</style>
+<script type="text/javascript">
+var handler=null;
+// see https://github.com/mbostock/d3/wiki/Ordinal-Scales#category20c
+var colors = d3.scale.category20c().domain(d3.range(0,20)).range()
+
+function c0(index) { return "#9c9c9c"; }
+function c1(index) { return "#bdbdbd"; }
+function c2(index) { return colors[index % 16]; } // <-- note: uses only the first 16 colors
+
+var elapsed="1m 49s"
+var beginningMillis=1582209075368;
+var endingMillis=1591042006914;
+var data=[
+{"label": "fastqc (SRR452328)", "times": [{"starting_time": 1582209075475, "ending_time": 1582209075550, "color":c1(0)}, {"starting_time": 1582209075550, "ending_time": 1582209551157, "color":c0(0), "label": "8m \/ 535.6 MB \/ CACHED"}, {"starting_time": 1582209551157, "ending_time": 1582209555839, "color":c1(0)}]},
+{"label": "fastqc (SRR452331)", "times": [{"starting_time": 1582209075413, "ending_time": 1582209075526, "color":c1(0)}, {"starting_time": 1582209075526, "ending_time": 1582209715452, "color":c0(0), "label": "10m 44s \/ 438.6 MB \/ CACHED"}, {"starting_time": 1582209715452, "ending_time": 1582209719430, "color":c1(0)}]},
+{"label": "trim_galore (SRR452328)", "times": [{"starting_time": 1582209075510, "ending_time": 1582209075583, "color":c1(1)}, {"starting_time": 1582209075583, "ending_time": 1582211359004, "color":c0(1), "label": "38m 13s \/ 265.9 MB \/ CACHED"}, {"starting_time": 1582211359004, "ending_time": 1582211368604, "color":c1(1)}]},
+{"label": "trim_galore (SRR452333)", "times": [{"starting_time": 1582209910271, "ending_time": 1582209910362, "color":c1(1)}, {"starting_time": 1582209910362, "ending_time": 1582213723754, "color":c0(1), "label": "1h 3m 43s \/ 256.1 MB \/ CACHED"}, {"starting_time": 1582213723754, "ending_time": 1582213732958, "color":c1(1)}]},
+{"label": "trim_galore (SRR452331)", "times": [{"starting_time": 1582225446761, "ending_time": 1582225446795, "color":c1(1)}, {"starting_time": 1582225446795, "ending_time": 1582229143401, "color":c0(1), "label": "1h 1m 40s \/ 255.8 MB \/ CACHED"}, {"starting_time": 1582229143401, "ending_time": 1582229146576, "color":c1(1)}]},
+{"label": "fastqc (SRR452329)", "times": [{"starting_time": 1582209075368, "ending_time": 1582209075483, "color":c1(0)}, {"starting_time": 1582209075483, "ending_time": 1582209498126, "color":c0(0), "label": "7m 7s \/ 530.5 MB \/ CACHED"}, {"starting_time": 1582209498126, "ending_time": 1582209502603, "color":c1(0)}]},
+{"label": "trim_galore (SRR452330)", "times": [{"starting_time": 1582211368657, "ending_time": 1582211368707, "color":c1(1)}, {"starting_time": 1582211368707, "ending_time": 1582213161022, "color":c0(1), "label": "29m 59s \/ 260 MB \/ CACHED"}, {"starting_time": 1582213161022, "ending_time": 1582213167730, "color":c1(1)}]},
+{"label": "trim_galore (SRR452329)", "times": [{"starting_time": 1582213732993, "ending_time": 1582213733058, "color":c1(1)}, {"starting_time": 1582213733058, "ending_time": 1582216426541, "color":c0(1), "label": "45m \/ 252.7 MB \/ CACHED"}, {"starting_time": 1582216426541, "ending_time": 1582216433425, "color":c1(1)}]},
+{"label": "trim_galore (SRR452332)", "times": [{"starting_time": 1582213167827, "ending_time": 1582213167867, "color":c1(1)}, {"starting_time": 1582213167867, "ending_time": 1582214388900, "color":c0(1), "label": "20m 30s \/ 260.5 MB \/ CACHED"}, {"starting_time": 1582214388900, "ending_time": 1582214397585, "color":c1(1)}]},
+{"label": "fastqc (SRR452330)", "times": [{"starting_time": 1582209502627, "ending_time": 1582209502703, "color":c1(0)}, {"starting_time": 1582209502703, "ending_time": 1582209780886, "color":c0(0), "label": "4m 42s \/ 486.8 MB \/ CACHED"}, {"starting_time": 1582209780886, "ending_time": 1582209784483, "color":c1(0)}]},
+{"label": "fastqc (SRR452333)", "times": [{"starting_time": 1582209555856, "ending_time": 1582209555940, "color":c1(0)}, {"starting_time": 1582209555940, "ending_time": 1582210173041, "color":c0(0), "label": "10m 23s \/ 550 MB \/ CACHED"}, {"starting_time": 1582210173041, "ending_time": 1582210179283, "color":c1(0)}]},
+{"label": "fastqc (SRR452332)", "times": [{"starting_time": 1582209719450, "ending_time": 1582209719530, "color":c1(0)}, {"starting_time": 1582209719530, "ending_time": 1582209907211, "color":c0(0), "label": "3m 11s \/ 545 MB \/ CACHED"}, {"starting_time": 1582209907211, "ending_time": 1582209910263, "color":c1(0)}]},
+{"label": "get_software_versions", "times": [{"starting_time": 1591041901172, "ending_time": 1591041901282, "color":c1(2)}, {"starting_time": 1591041901282, "ending_time": 1591041909413, "color":c2(2), "label": "9.8s \/ 87.8 MB"}, {"starting_time": 1591041909413, "ending_time": 1591041911006, "color":c1(2)}]},
+{"label": "output_documentation", "times": [{"starting_time": 1582209784498, "ending_time": 1582209784582, "color":c1(3)}, {"starting_time": 1582209784582, "ending_time": 1582209785265, "color":c0(3), "label": "3.5s \/ 20.6 MB \/ CACHED"}, {"starting_time": 1582209785265, "ending_time": 1582209788038, "color":c1(3)}]},
+{"label": "star (SRR452333)", "times": [{"starting_time": 1582285855619, "ending_time": 1582285855624, "color":c1(4)}, {"starting_time": 1582285855624, "ending_time": 1582293052696, "color":c0(4), "label": "2h 9s \/ 33.4 GB \/ CACHED"}, {"starting_time": 1582293052696, "ending_time": 1582293064838, "color":c1(4)}]},
+{"label": "star (SRR452330)", "times": [{"starting_time": 1582302737655, "ending_time": 1582302779451, "color":c1(4)}, {"starting_time": 1582302779451, "ending_time": 1582306282553, "color":c0(4), "label": "58m 40s \/ 33.2 GB \/ CACHED"}]},
+{"label": "star (SRR452329)", "times": [{"starting_time": 1582295494943, "ending_time": 1582295495821, "color":c1(4)}, {"starting_time": 1582295495821, "ending_time": 1582302710700, "color":c0(4), "label": "2h 27s \/ 32.9 GB \/ CACHED"}, {"starting_time": 1582302710700, "ending_time": 1582302722342, "color":c1(4)}]},
+{"label": "star (SRR452332)", "times": [{"starting_time": 1582293068771, "ending_time": 1582293150585, "color":c1(4)}, {"starting_time": 1582293150585, "ending_time": 1582295562341, "color":c0(4), "label": "40m 26s \/ 33.3 GB \/ CACHED"}]},
+{"label": "star (SRR452331)", "times": [{"starting_time": 1582306271424, "ending_time": 1582306293273, "color":c1(4)}, {"starting_time": 1582306293273, "ending_time": 1582314495538, "color":c0(4), "label": "2h 16m 57s \/ 33.5 GB \/ CACHED"}]},
+{"label": "star (SRR452328)", "times": [{"starting_time": 1582314498862, "ending_time": 1582314520562, "color":c1(4)}, {"starting_time": 1582314520562, "ending_time": 1582318212626, "color":c0(4), "label": "1h 1m 46s \/ 33.3 GB \/ CACHED"}]},
+{"label": "preseq (SRR452328_1AlignedByCoord.out)", "times": [{"starting_time": 1591036364394, "ending_time": 1591036364482, "color":c1(5)}, {"starting_time": 1591036364482, "ending_time": 1591036660880, "color":c0(5), "label": "5m 2s \/ 16.8 MB \/ CACHED"}, {"starting_time": 1591036660880, "ending_time": 1591036666804, "color":c1(5)}]},
+{"label": "preseq (SRR452333_1AlignedByCoord.out)", "times": [{"starting_time": 1582318217223, "ending_time": 1582318218144, "color":c1(5)}, {"starting_time": 1582318218144, "ending_time": 1582318852042, "color":c0(5), "label": "10m 46s \/ 17 MB \/ CACHED"}, {"starting_time": 1582318852042, "ending_time": 1582318862789, "color":c1(5)}]},
+{"label": "preseq (SRR452331_1AlignedByCoord.out)", "times": [{"starting_time": 1591035824722, "ending_time": 1591035824805, "color":c1(5)}, {"starting_time": 1591035824805, "ending_time": 1591036594922, "color":c0(5), "label": "12m 58s \/ 11.4 MB \/ CACHED"}, {"starting_time": 1591036594922, "ending_time": 1591036602467, "color":c1(5)}]},
+{"label": "stringtieFPKM (SRR452333_1AlignedByCoord.out)", "times": [{"starting_time": 1582318207732, "ending_time": 1582318207990, "color":c1(6)}, {"starting_time": 1582318207990, "ending_time": 1582318669539, "color":c0(6), "label": "8m 1s \/ 722 MB \/ CACHED"}, {"starting_time": 1582318669539, "ending_time": 1582318689102, "color":c1(6)}]},
+{"label": "stringtieFPKM (SRR452328_1AlignedByCoord.out)", "times": [{"starting_time": 1591036229207, "ending_time": 1591036229273, "color":c1(6)}, {"starting_time": 1591036229273, "ending_time": 1591036509712, "color":c0(6), "label": "4m 46s \/ 691 MB \/ CACHED"}, {"starting_time": 1591036509712, "ending_time": 1591036515290, "color":c1(6)}]},
+{"label": "stringtieFPKM (SRR452332_1AlignedByCoord.out)", "times": [{"starting_time": 1582318926639, "ending_time": 1582318926965, "color":c1(6)}, {"starting_time": 1582318926965, "ending_time": 1582319152383, "color":c0(6), "label": "4m 5s \/ 567.1 MB \/ CACHED"}, {"starting_time": 1582319152383, "ending_time": 1582319171981, "color":c1(6)}]},
+{"label": "qualimap (SRR452328_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1591036201478, "ending_time": 1591036201544, "color":c1(7)}, {"starting_time": 1591036201544, "ending_time": 1591036372396, "color":c0(7), "label": "2m 55s \/ 7 GB \/ CACHED"}, {"starting_time": 1591036372396, "ending_time": 1591036376685, "color":c1(7)}]},
+{"label": "preseq (SRR452329_1AlignedByCoord.out)", "times": [{"starting_time": 1582318926818, "ending_time": 1582318926982, "color":c1(5)}, {"starting_time": 1582318926982, "ending_time": 1582319452249, "color":c0(5), "label": "8m 54s \/ 16.2 MB \/ CACHED"}, {"starting_time": 1582319452249, "ending_time": 1582319460466, "color":c1(5)}]},
+{"label": "preseq (SRR452332_1AlignedByCoord.out)", "times": [{"starting_time": 1582318689419, "ending_time": 1582318689697, "color":c1(5)}, {"starting_time": 1582318689697, "ending_time": 1582318918515, "color":c0(5), "label": "4m 2s \/ 17.4 MB \/ CACHED"}, {"starting_time": 1582318918515, "ending_time": 1582318931161, "color":c1(5)}]},
+{"label": "markDuplicates (SRR452329_1AlignedByCoord.out)", "times": [{"starting_time": 1582319172159, "ending_time": 1582319172181, "color":c1(8)}, {"starting_time": 1582319172181, "ending_time": 1582320297090, "color":c0(8), "label": "18m 59s \/ 5.7 GB \/ CACHED"}, {"starting_time": 1582320297090, "ending_time": 1582320310977, "color":c1(8)}]},
+{"label": "qualimap (SRR452333_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1582318214750, "ending_time": 1582318214881, "color":c1(7)}, {"starting_time": 1582318214881, "ending_time": 1582318453907, "color":c0(7), "label": "4m 7s \/ 6.6 GB \/ CACHED"}, {"starting_time": 1582318453907, "ending_time": 1582318461475, "color":c1(7)}]},
+{"label": "stringtieFPKM (SRR452331_1AlignedByCoord.out)", "times": [{"starting_time": 1591035824899, "ending_time": 1591035824913, "color":c1(6)}, {"starting_time": 1591035824913, "ending_time": 1591036386256, "color":c0(6), "label": "9m 30s \/ 754.5 MB \/ CACHED"}, {"starting_time": 1591036386256, "ending_time": 1591036394451, "color":c1(6)}]},
+{"label": "qualimap (SRR452331_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1591035824913, "ending_time": 1591035825004, "color":c1(7)}, {"starting_time": 1591035825004, "ending_time": 1591036219831, "color":c0(7), "label": "6m 44s \/ 7 GB \/ CACHED"}, {"starting_time": 1591036219831, "ending_time": 1591036229169, "color":c1(7)}]},
+{"label": "markDuplicates (SRR452330_1AlignedByCoord.out)", "times": [{"starting_time": 1582319460537, "ending_time": 1582319460868, "color":c1(8)}, {"starting_time": 1582319460868, "ending_time": 1582320208928, "color":c0(8), "label": "12m 33s \/ 6.4 GB \/ CACHED"}, {"starting_time": 1582320208928, "ending_time": 1582320213964, "color":c1(8)}]},
+{"label": "markDuplicates (SRR452328_1AlignedByCoord.out)", "times": [{"starting_time": 1591036229180, "ending_time": 1591036229270, "color":c1(8)}, {"starting_time": 1591036229270, "ending_time": 1591036955926, "color":c0(8), "label": "12m 12s \/ 6.8 GB \/ CACHED"}, {"starting_time": 1591036955926, "ending_time": 1591036960807, "color":c1(8)}]},
+{"label": "preseq (SRR452330_1AlignedByCoord.out)", "times": [{"starting_time": 1582319367828, "ending_time": 1582319367880, "color":c1(5)}, {"starting_time": 1582319367880, "ending_time": 1582319735884, "color":c0(5), "label": "7m 21s \/ 10.5 MB \/ CACHED"}, {"starting_time": 1582319735884, "ending_time": 1582319808389, "color":c1(5)}]},
+{"label": "stringtieFPKM (SRR452330_1AlignedByCoord.out)", "times": [{"starting_time": 1582319426665, "ending_time": 1582319426755, "color":c1(6)}, {"starting_time": 1582319426755, "ending_time": 1582319803416, "color":c0(6), "label": "6m 33s \/ 654 MB \/ CACHED"}, {"starting_time": 1582319803416, "ending_time": 1582319820117, "color":c1(6)}]},
+{"label": "qualimap (SRR452332_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1591036115942, "ending_time": 1591036115991, "color":c1(7)}, {"starting_time": 1591036115991, "ending_time": 1591036299714, "color":c0(7), "label": "3m 11s \/ 6.8 GB \/ CACHED"}, {"starting_time": 1591036299714, "ending_time": 1591036306914, "color":c1(7)}]},
+{"label": "qualimap (SRR452330_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1591036376693, "ending_time": 1591036376786, "color":c1(7)}, {"starting_time": 1591036376786, "ending_time": 1591036505254, "color":c0(7), "label": "2m 11s \/ 6.8 GB \/ CACHED"}, {"starting_time": 1591036505254, "ending_time": 1591036507901, "color":c1(7)}]},
+{"label": "markDuplicates (SRR452333_1AlignedByCoord.out)", "times": [{"starting_time": 1582318220000, "ending_time": 1582318220099, "color":c1(8)}, {"starting_time": 1582318220099, "ending_time": 1582319677140, "color":c0(8), "label": "24m 26s \/ 4.4 GB \/ CACHED"}, {"starting_time": 1582319677140, "ending_time": 1582319686410, "color":c1(8)}]},
+{"label": "stringtieFPKM (SRR452329_1AlignedByCoord.out)", "times": [{"starting_time": 1582318931642, "ending_time": 1582318931747, "color":c1(6)}, {"starting_time": 1582318931747, "ending_time": 1582319384145, "color":c0(6), "label": "8m 15s \/ 733 MB \/ CACHED"}, {"starting_time": 1582319384145, "ending_time": 1582319426553, "color":c1(6)}]},
+{"label": "markDuplicates (SRR452331_1AlignedByCoord.out)", "times": [{"starting_time": 1591035824935, "ending_time": 1591035825012, "color":c1(8)}, {"starting_time": 1591035825012, "ending_time": 1591037537182, "color":c0(8), "label": "28m 40s \/ 5.1 GB \/ CACHED"}, {"starting_time": 1591037537182, "ending_time": 1591037544867, "color":c1(8)}]},
+{"label": "markDuplicates (SRR452332_1AlignedByCoord.out)", "times": [{"starting_time": 1582318862977, "ending_time": 1582318863188, "color":c1(8)}, {"starting_time": 1582318863188, "ending_time": 1582319363789, "color":c0(8), "label": "8m 25s \/ 4.6 GB \/ CACHED"}, {"starting_time": 1582319363789, "ending_time": 1582319367780, "color":c1(8)}]},
+{"label": "qualimap (SRR452329_1Aligned.sortedByCoord.out)", "times": [{"starting_time": 1591035824880, "ending_time": 1591035824904, "color":c1(7)}, {"starting_time": 1591035824904, "ending_time": 1591036106771, "color":c0(7), "label": "4m 51s \/ 7 GB \/ CACHED"}, {"starting_time": 1591036106771, "ending_time": 1591036115890, "color":c1(7)}]},
+{"label": "dupradar (SRR452329_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591035825001, "ending_time": 1591035825051, "color":c1(9)}, {"starting_time": 1591035825051, "ending_time": 1591036190169, "color":c0(9), "label": "6m 16s \/ 410.3 MB \/ CACHED"}, {"starting_time": 1591036190169, "ending_time": 1591036201344, "color":c1(9)}]},
+{"label": "dupradar (SRR452328_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591038726957, "ending_time": 1591038727049, "color":c1(9)}, {"starting_time": 1591038727049, "ending_time": 1591038940128, "color":c0(9), "label": "3m 35s \/ 409.6 MB \/ CACHED"}, {"starting_time": 1591038940128, "ending_time": 1591038941661, "color":c1(9)}]},
+{"label": "dupradar (SRR452330_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591036398548, "ending_time": 1591036398642, "color":c1(9)}, {"starting_time": 1591036398642, "ending_time": 1591036581494, "color":c0(9), "label": "3m 6s \/ 392.7 MB \/ CACHED"}, {"starting_time": 1591036581494, "ending_time": 1591036584101, "color":c1(9)}]},
+{"label": "dupradar (SRR452332_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591036223878, "ending_time": 1591036223964, "color":c1(9)}, {"starting_time": 1591036223964, "ending_time": 1591036392637, "color":c0(9), "label": "2m 55s \/ 389.9 MB \/ CACHED"}, {"starting_time": 1591036392637, "ending_time": 1591036398540, "color":c1(9)}]},
+{"label": "dupradar (SRR452331_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591038726963, "ending_time": 1591038727051, "color":c1(9)}, {"starting_time": 1591038727051, "ending_time": 1591039175324, "color":c0(9), "label": "7m 30s \/ 426.5 MB \/ CACHED"}, {"starting_time": 1591039175324, "ending_time": 1591039176794, "color":c1(9)}]},
+{"label": "dupradar (SRR452333_1Aligned.sortedByCoord.out.markDups)", "times": [{"starting_time": 1591035825022, "ending_time": 1591035825121, "color":c1(9)}, {"starting_time": 1591035825121, "ending_time": 1591036352933, "color":c0(9), "label": "8m 59s \/ 415.7 MB \/ CACHED"}, {"starting_time": 1591036352933, "ending_time": 1591036364380, "color":c1(9)}]},
+{"label": "featureCounts (SRR452333_1AlignedByCoord.out)", "times": [{"starting_time": 1582318461640, "ending_time": 1582318461818, "color":c1(10)}, {"starting_time": 1582318461818, "ending_time": 1582318779177, "color":c0(10), "label": "5m 23s \/ 228.5 MB \/ CACHED"}, {"starting_time": 1582318779177, "ending_time": 1582318784501, "color":c1(10)}]},
+{"label": "featureCounts (SRR452329_1AlignedByCoord.out)", "times": [{"starting_time": 1591035824957, "ending_time": 1591035825022, "color":c1(10)}, {"starting_time": 1591035825022, "ending_time": 1591036212661, "color":c0(10), "label": "6m 39s \/ 233.2 MB \/ CACHED"}, {"starting_time": 1591036212661, "ending_time": 1591036223863, "color":c1(10)}]},
+{"label": "featureCounts (SRR452332_1AlignedByCoord.out)", "times": [{"starting_time": 1582318784543, "ending_time": 1582318784601, "color":c1(10)}, {"starting_time": 1582318784601, "ending_time": 1582318918000, "color":c0(10), "label": "2m 22s \/ 219.1 MB \/ CACHED"}, {"starting_time": 1582318918000, "ending_time": 1582318926122, "color":c1(10)}]},
+{"label": "featureCounts (SRR452331_1AlignedByCoord.out)", "times": [{"starting_time": 1591035824975, "ending_time": 1591035825041, "color":c1(10)}, {"starting_time": 1591035825041, "ending_time": 1591036411727, "color":c0(10), "label": "9m 57s \/ 241.7 MB \/ CACHED"}, {"starting_time": 1591036411727, "ending_time": 1591036421828, "color":c1(10)}]},
+{"label": "featureCounts (SRR452328_1AlignedByCoord.out)", "times": [{"starting_time": 1591036306925, "ending_time": 1591036307015, "color":c1(10)}, {"starting_time": 1591036307015, "ending_time": 1591036472961, "color":c0(10), "label": "2m 57s \/ 224.4 MB \/ CACHED"}, {"starting_time": 1591036472961, "ending_time": 1591036484303, "color":c1(10)}]},
+{"label": "featureCounts (SRR452330_1AlignedByCoord.out)", "times": [{"starting_time": 1591036394460, "ending_time": 1591036394552, "color":c1(10)}, {"starting_time": 1591036394552, "ending_time": 1591036565533, "color":c0(10), "label": "3m \/ 221.6 MB \/ CACHED"}, {"starting_time": 1591036565533, "ending_time": 1591036574732, "color":c1(10)}]},
+{"label": "merge_featureCounts (SRR452333_1AlignedByCoord.out_gene.featureCounts)", "times": [{"starting_time": 1591038723516, "ending_time": 1591038723609, "color":c1(11)}, {"starting_time": 1591038723609, "ending_time": 1591038725365, "color":c0(11), "label": "3.4s \/ 37.2 MB \/ CACHED"}, {"starting_time": 1591038725365, "ending_time": 1591038726949, "color":c1(11)}]},
+{"label": "sample_correlation (SRR452333_1.sortedByCoord.out_gene.featureCounts.txt)", "times": [{"starting_time": 1591036602475, "ending_time": 1591036602567, "color":c1(12)}, {"starting_time": 1591036602567, "ending_time": 1591036610933, "color":c0(12), "label": "12.9s \/ 174 MB \/ CACHED"}, {"starting_time": 1591036610933, "ending_time": 1591036615362, "color":c1(12)}]},
+{"label": "rseqc (SRR452328_1AlignedByCoord.out)", "times": [{"starting_time": 1591036584108, "ending_time": 1591036584202, "color":c1(13)}, {"starting_time": 1591036584202, "ending_time": 1591037869252, "color":c0(13), "label": "21m 27s \/ 5.3 GB \/ CACHED"}, {"starting_time": 1591037869252, "ending_time": 1591037871002, "color":c1(13)}]},
+{"label": "rseqc (SRR452332_1AlignedByCoord.out)", "times": [{"starting_time": 1591038544449, "ending_time": 1591038544542, "color":c1(13)}, {"starting_time": 1591038544542, "ending_time": 1591039348690, "color":c0(13), "label": "13m 26s \/ 2.9 GB \/ CACHED"}, {"starting_time": 1591039348690, "ending_time": 1591039350371, "color":c1(13)}]},
+{"label": "rseqc (SRR452333_1AlignedByCoord.out)", "times": [{"starting_time": 1591036515296, "ending_time": 1591036515390, "color":c1(13)}, {"starting_time": 1591036515390, "ending_time": 1591038718215, "color":c0(13), "label": "36m 48s \/ 9.7 GB \/ CACHED"}, {"starting_time": 1591038718215, "ending_time": 1591038723510, "color":c1(13)}]},
+{"label": "rseqc (SRR452329_1AlignedByCoord.out)", "times": [{"starting_time": 1591036960817, "ending_time": 1591036960907, "color":c1(13)}, {"starting_time": 1591036960907, "ending_time": 1591038521515, "color":c0(13), "label": "26m 24s \/ 7.1 GB \/ CACHED"}, {"starting_time": 1591038521515, "ending_time": 1591038544442, "color":c1(13)}]},
+{"label": "rseqc (SRR452331_1AlignedByCoord.out)", "times": [{"starting_time": 1591036484312, "ending_time": 1591036484404, "color":c1(13)}, {"starting_time": 1591036484404, "ending_time": 1591039304056, "color":c0(13), "label": "47m 2s \/ 11.6 GB \/ CACHED"}, {"starting_time": 1591039304056, "ending_time": 1591039306621, "color":c1(13)}]},
+{"label": "rseqc (SRR452330_1AlignedByCoord.out)", "times": [{"starting_time": 1591037871014, "ending_time": 1591037871102, "color":c1(13)}, {"starting_time": 1591037871102, "ending_time": 1591038820932, "color":c0(13), "label": "15m 54s \/ 4.2 GB \/ CACHED"}, {"starting_time": 1591038820932, "ending_time": 1591038824737, "color":c1(13)}]},
+{"label": "multiqc", "times": [{"starting_time": 1591041936854, "ending_time": 1591041936863, "color":c1(14)}, {"starting_time": 1591041936863, "ending_time": 1591042002910, "color":c2(14), "label": "1m 8s \/ 152.9 MB"}, {"starting_time": 1591042002910, "ending_time": 1591042005014, "color":c1(14)}]}
+]
+
+
+function getTickFormat() {
+  var MIN = 1000 * 60
+  var HOUR = MIN * 60
+  var DAY = HOUR * 24
+  var delta = (endingMillis - beginningMillis)
+
+  if( delta < 2 * MIN ) {
+    return {
+      format: d3.time.format("%S"),
+      tickTime: d3.time.seconds,
+      tickInterval: 5,
+      tickSize: 6
+    }
+  }
+
+  if( delta < 2 * HOUR ) {
+    return {
+      format: d3.time.format("%M"),
+      tickTime: d3.time.minutes,
+      tickInterval: 5,
+      tickSize: 6
+    }
+  }
+
+  if( delta < 2 * DAY ) {
+    return {
+      format: d3.time.format("%H:%M"),
+      tickTime: d3.time.hours,
+      tickInterval: 1,
+      tickSize: 6
+    }
+  }
+
+  if( delta <= 7 * DAY ) {
+    return {
+      format: d3.time.format("%b %e %H:%M"),
+      tickTime: d3.time.hours,
+      tickInterval: 6,
+      tickSize: 6
+    }
+  }
+
+  return {
+    format: d3.time.format("%b %e"),
+    tickTime: d3.time.days,
+    tickInterval: 1,
+    tickSize: 6
+  }
+}
+
+function getLabelMargin(scale) {
+    $('<span class="labelSpan" style="display: none"></span>').appendTo('body');
+
+    var labelMargin = 0
+    $.each(data, function (key, value) {
+      labelMargin = Math.max(labelMargin, $('.labelSpan').html(value.label).width());
+    });
+
+    $('.labelSpan').remove();
+
+    return (labelMargin * scale);
+}
+
+function render() {
+  handler=null;
+  $("#timeline").empty()
+  $('#label_elapsed').text(elapsed)
+  $('#label_launch').text( d3.time.format('%d %b %Y %H:%M')(new Date(beginningMillis)) )
+
+  var width = $(window).width();
+  var chart = d3.timeline()
+    .stack() // toggles graph stacking
+    .margin({left:getLabelMargin(0.85), right:100, top:0, bottom:0})
+    .tickFormat( getTickFormat() )
+    .rowSeperators('#f5f5f5')
+    .showTimeAxisTick()
+    ;
+  var svg = d3.select("#timeline").append("svg").attr("width", width).datum(data).call(chart);
+}
+
+function hrz() {
+if( handler != null ) clearTimeout(handler)
+  handler = setTimeout(render, 150);
+}
+
+$(document).ready(render)
+$(window).resize(hrz); // resize the applet on window resize
+</script>
+</head>
+
+<body>
+<div>
+  <h3>Processes execution timeline</h3>
+  <p>
+    Launch time: <span id='label_launch'> </span><br>
+    Elapsed time: <span id='label_elapsed'> </span><br>
+    Legend: job wall time / memory usage (RAM) <span id='label_legend'> </span>
+  </p>
+  <div id="timeline"></div>
+</div>
+
+<div id='footer'>
+  Created with Nextflow -- <a href='http://www.nextflow.io' target='_blank'>http://nextflow.io</a>
+</div>
+
+<script type="text/javascript">
+var prot = (("https:" == document.location.protocol) ? "https://" : "http://");
+document.write(unescape("%3Clink href='" + prot + "fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css' %3E%3C/link%3E"));
+</script>
+</body>
+</html>
