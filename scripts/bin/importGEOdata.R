@@ -16,8 +16,9 @@ flog.debug("getting metadata")
 pdata <- lapply(gds, phenoData)
 pdata <- lapply(pdata, pData)
 pheno <- do.call(rbind, pdata)
+saveRDS(pheno, "scripts/data/pheno.RDS")
 
-flog.debug("download supplementary files")
+#flog.debug("download supplementary files")
 
 # lapply(
 #   pheno$geo_accession,

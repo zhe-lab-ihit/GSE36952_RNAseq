@@ -1,0 +1,182 @@
+---
+title: 'M1 & M2 macrophages data: initial exploratory analysis'
+author: "Michal Pawlak, mpawlak@get2omics.com"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_depth: 3
+    toc_float: true
+theme: united
+
+---
+
+## Reading count data
+
+```{r setup, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 8, fig.width = 8, message=FALSE, warning=FALSE)
+suppressPackageStartupMessages(library("ggplot2"))
+suppressPackageStartupMessages(library("ggrepel"))
+suppressPackageStartupMessages(library("dplyr"))
+suppressPackageStartupMessages(library("DT"))
+suppressPackageStartupMessages(library("Biobase"))
+suppressPackageStartupMessages(library("DESeq2"))
+suppressPackageStartupMessages(library("pheatmap"))
+suppressPackageStartupMessages(library("RColorBrewer"))
+suppressPackageStartupMessages(library("reshape2"))
+suppressPackageStartupMessages(library("ggpubr"))
+suppressPackageStartupMessages(library("org.Hs.eg.db"))
+suppressPackageStartupMessages(library("tibble"))
+suppressPackageStartupMessages(library("plotly"))
+suppressPackageStartupMessages(library("EnhancedVolcano"))
+suppressPackageStartupMessages(library("rmarkdown"))
+```
+
+```{r raw_counts}
+se <- readRDS("../data/se.RDS")
+knitr::kable(colData(se))
+```
+
+
+## Exploratory plots
+
+We will create DESeq2 object that will be further used in the analysis. We will apply variance stabilizing transformation `vst` to normalize data and we will perform PCA and sample-to-sample correlation.
+
+```{r vsd}
+
+dds <- DESeqDataSet(se, design = ~group)
+
+rownames(dds) <- rowData(se)$gene_name
+
+keep <- rowSums(counts(dds)) >= 10
+dds <- dds[keep,]
+
+vsd <- vst(dds)
+
+dataPCA <-
+  plotPCA(vsd,
+  intgroup = c("group"),
+  returnData = T)
+
+percentVar <- round(100 * attr(dataPCA, "percentVar"))
+
+ggplot(dataPCA, aes(PC1, PC2)) + geom_point(aes(col = name), size = 4) + xlab(paste0("PC1: ", percentVar[1], "%variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) + coord_fixed() + scale_size_manual(values =
+  c(5, 8, 12)) +
+  scale_color_manual(values = c("orange", "red", "green", "brown", "blue", "violet", "grey")) + theme_bw() +
+  theme(
+  axis.title = element_text(size = 16, face = "bold"),
+  plot.title = element_text(size = 16, face = "bold"),
+  legend.text =
+  element_text(size = 14),
+  legend.title = element_text(size = 16)
+  ) + geom_text_repel(aes(label = group), hjust = 1, vjust = 0) + ggtitle("PCA")
+
+```
+
+
+## Euclidean distance and spearman correlation heatmaps
+
+```{r heatmap_before_batch}
+sampleDists <- dist(t(assay(vsd)))
+sampleDistMatrix <- as.matrix(sampleDists)
+colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+#Eucledian distance heatmap
+pheatmap(
+  sampleDistMatrix,
+  clustering_distance_rows = sampleDists,
+  clustering_distance_cols = sampleDists,
+  col = colors,
+  show_colnames = FALSE,
+  main = "Sample-to-sample Euclidean distance"
+  )
+cor_vsd <- cor(assay(vsd), method = "spearman")
+#correlation heatmap
+pheatmap(cor_vsd, annotation_names_col = FALSE,
+  main = "Pairwise sample-to-sample spearman correlation")
+```
+
+## Differential expression analysis
+
+Differential gene expression analysis was performed with `DESeq2` with default parameters.
+
+```{r deg}
+dds <- DESeq(dds)
+res <- results(dds, contrast = c("group", "M2", "M1"))
+
+
+DEG <- as.data.frame(res) %>% tibble::rownames_to_column("gene_name")  %>%  dplyr::select(gene_name, log2FoldChange, pvalue, padj)
+
+DT::datatable(
+  DEG,
+  extensions = c("Buttons"),
+  options = list(
+    scrollX = TRUE,
+    dom = "Bfrtip",
+    buttons = c("copy", "csv", "excel")
+  ),
+  rownames = FALSE,
+  caption = paste("Table 1: Differentially expressed genes between M1 and M2 macrophages, log2(M2/M1)")
+)
+```
+
+### Volcano plots
+
+Beside the tables above, volcano plots are provided for each contrast with thresholds: FC > 2, p < 10e-6.
+
+```{r volcano}
+#get interactive volcano plots
+#res_all <- dplyr::bind_rows(DEG, .id = "contrast")
+#theme_set(cowplot::theme_cowplot(font_size = 12))
+
+EnhancedVolcano(DEG,
+    lab = DEG$gene_name,
+    x = 'log2FoldChange',
+    y = 'pvalue',
+    FCcutoff = 2,
+    title = "Volcano plot",
+    subtitle = "M1 (pos) vs. M2 (neg)",
+    xlim = c(-10, 10))
+```
+
+
+### Top differential genes heatmaps
+
+To better visualize variable genes in each comparison, we are going to have a look at `n` most upregulated and `n` most downregulated genes in each contrasts and plot the valuse as a heatmap of sclaled (z-score) vsd values for each biological replicate.
+
+#### Top 25
+
+```{r heatmaps_top_25}
+
+top <- rbind(top_n(DEG, 25, log2FoldChange), top_n(DEG, -25, log2FoldChange))
+
+vsd_table <- as.data.frame(assay(vsd))
+vsd_scaled <- t(scale(t(vsd_table)))
+
+pheatmap(
+  vsd_scaled[rownames(vsd_scaled) %in% top$gene_name, ],
+  show_rownames = TRUE,
+  cluster_cols = FALSE,
+  cellwidth = 10,
+  cluster_rows = TRUE,
+  scale = "none",
+  angle_col = 270,
+  labels_row = top$gene_name,
+  main = "top 25 up/down for M1 vs. M2, values showed as z-score of vsd"
+  )
+
+```
+
+```{r fgsea_signature}
+m_polarization <- list(M1_upregulated = dplyr::filter(DEG, log2FoldChange > 0, padj < 0.05) %>% pull(gene_name),
+                       M2_upregulated = dplyr::filter(DEG, log2FoldChange < 0, padj < 0.05) %>% pull(gene_name))
+saveRDS(m_polarization, "../data/m_polarization.RDS")
+```
+
+
+
+```{r}
+sessionInfo()
+```
+
