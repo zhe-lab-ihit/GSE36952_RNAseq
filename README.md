@@ -29,5 +29,5 @@ The goal of this analyis is to perform differential gene analysis between human 
 * [multiqc report](https://zhe-lab-ihit.github.io/GSE36952_RNAseq/scripts/data/GSE36952_v6_multiqc_report.html)
 
 3. Following [R script](scripts/bin/getFeatureCounts.R) was used to retrieve gene counts and generate summarized experiment object.
-4. The [report](https://zhe-lab-ihit.github.io/GSE36952_RNAseq/scripts/exploratory_analysis.html) containing differential gene analysis was prepared in [R markdown](scripts/bin/exploratory_analysis.Rmd). M1/M2 gene sets were saved to scripts/data/m_polarization.RDS.
+4. The [report](https://zhe-lab-ihit.github.io/GSE36952_RNAseq/scripts/bin/exploratory_analysis.html) containing differential gene analysis was prepared in [R markdown](scripts/bin/exploratory_analysis.Rmd). M1/M2 gene sets were saved to scripts/data/m_polarization.RDS.
 
