@@ -171,11 +171,11 @@ pheatmap(
 ```{r fgsea_signature}
 m_polarization <- list(M1_upregulated = dplyr::filter(DEG, 
                                                       padj < 0.05) %>% 
-                                                      top_n(-500, log2FoldChange) %>%
+                                                      slice_min(n = 500, order_by = log2FoldChange) %>%
                                                       pull(gene_name),
                        M2_upregulated = dplyr::filter(DEG, 
                                                       padj < 0.05) %>% 
-                                                      top_n(500, log2FoldChange) %>%
+                                                      slice_max(n = 500, order_by = log2FoldChange) %>%
                                                       pull(gene_name))
 
 saveRDS(m_polarization, "../data/m_polarization.RDS")
